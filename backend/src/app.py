@@ -13,5 +13,5 @@ def get_app() -> FastAPI:
         exception_handlers=exception_handlers,
     )
 
-
+    #TODO add logging setup and cors init
     return app
