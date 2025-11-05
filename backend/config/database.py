@@ -89,4 +89,4 @@ class DatabaseHelper:
 
 db_helper = DatabaseHelper(settings.database_url, settings.db_echo_log)
 
-ISession = Annotated[AsyncSession, Depends(db_helper.get_session)]
+ISession: type[AsyncSession] = Annotated[AsyncSession, Depends(db_helper.get_session)]
