@@ -1,3 +1,6 @@
+"""
+Defines custom, application-wide base exceptions.
+"""
 
 class AlreadyExists(Exception):
     """

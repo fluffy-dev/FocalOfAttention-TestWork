@@ -1,18 +1,31 @@
-from typing import Optional, Annotated
-from pydantic import BaseModel, EmailStr, StringConstraints
+"""
+Defines Data Transfer Objects (DTOs) for the User module.
+"""
+from pydantic import BaseModel, EmailStr, Field
 
-class UserDTO(BaseModel):
-    id: Optional[int] = None
-    name: Annotated[str, StringConstraints(max_length=30)]
-    login: Annotated[str, StringConstraints(max_length=50)]
+
+class UserBase(BaseModel):
+    """
+    Base DTO for user data, containing shared fields.
+    """
+    username: str = Field(..., min_length=3, max_length=50)
     email: EmailStr
-    password: Optional[str] = None
 
-class FindUserDTO(BaseModel):
-    id: Optional[int] = None
-    login: Optional[Annotated[str, StringConstraints(max_length=50)]] = None
-    email: Optional[EmailStr] = None
 
-class UpdateUserDTO(BaseModel):
-    name: Optional[Annotated[str, StringConstraints(max_length=30)]] = None
-    login: Optional[Annotated[str, StringConstraints(max_length=50)]] = None
+class UserCreate(UserBase):
+    """
+    DTO for creating a new user. Includes password validation.
+    """
+    password: str = Field(..., min_length=8)
+
+
+class UserDTO(UserBase):
+    """
+    DTO for representing a user's data, excluding the password.
+
+    Used for API responses to avoid exposing sensitive information.
+    """
+    id: int
+
+    class Config:
+        from_attributes = True
