@@ -6,7 +6,6 @@ and provides a DatabaseHelper class to create an asynchronous SQLAlchemy
 engine and session factory. It also defines the `ISession` dependency for
 clean session injection into repositories.
 """
-from contextlib import asynccontextmanager
 from sqlalchemy import exc
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
