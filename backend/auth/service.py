@@ -1,51 +1,71 @@
 """
-Service layer for authentication business logic.
+Service layer for authentication business logic, including registration and login.
 """
-from fastapi.security import OAuth2PasswordRequestForm
-
-from backend.user.dependencies.repository import IUserRepository
-from backend.user.dto import UserFindDTO
+from backend.user.dependencies.service import IUserService
+from backend.user.dto import UserCreate, UserFindDTO
 from backend.user.exceptions import UserNotFound
 from backend.security.service import PasswordService, TokenService
 from backend.security.dto import TokenDTO
+from backend.auth.dto import RegistrationDTO, LoginDTO
 
 
 class AuthService:
     """
-    Service for handling authentication logic, such as user login.
+    Service for handling user registration and authentication.
+
+    This service orchestrates the user creation process via the UserService
+    and handles credential verification for issuing JWTs.
 
     Args:
-        user_repo (IUserRepository): The user repository dependency.
+        user_service (IUserService): The user service dependency.
     """
-    def __init__(self, user_repo: IUserRepository):
-        self.user_repo = user_repo
+    def __init__(self, user_service: IUserService):
+        self.user_service = user_service
 
-    async def login(self, form_data: OAuth2PasswordRequestForm) -> TokenDTO:
+    async def register(self, dto: RegistrationDTO) -> TokenDTO:
         """
-        Authenticates a user and issues JWT tokens.
-
-        This method retrieves the full user model to access the hashed
-        password for verification.
+        Handles new user registration and immediately issues JWT tokens.
 
         Args:
-            form_data (OAuth2PasswordRequestForm): The user's login and password.
+            dto (RegistrationDTO): The registration data from the user.
+
+        Returns:
+            TokenDTO: A DTO containing the access and refresh tokens for the
+                newly created and logged-in user.
+        """
+        user_create_dto = UserCreate(
+            username=dto.username,
+            email=dto.email,
+            password=dto.password
+        )
+        new_user = await self.user_service.create_user(user_create_dto)
+
+        access_token = TokenService.create_access_token(data={"sub": str(new_user.id)})
+        refresh_token = TokenService.create_refresh_token(data={"sub": str(new_user.id)})
+
+        return TokenDTO(access_token=access_token, refresh_token=refresh_token)
+
+    async def login(self, dto: LoginDTO) -> TokenDTO:
+        """
+        Authenticates an existing user and issues JWT tokens.
+
+        Args:
+            dto (LoginDTO): The user's login credentials.
 
         Returns:
             TokenDTO: A DTO containing the access and refresh tokens.
 
         Raises:
-            UserNotFound: If the user does not exist or password is incorrect.
+            UserNotFound: If the username does not exist or the password
+                is incorrect.
         """
-        try:
-            find_dto = UserFindDTO(username=form_data.username)
-            user_model = await self.user_repo.find(find_dto, return_model=True)
-        except UserNotFound:
+        find_dto = UserFindDTO(username=dto.username)
+        user = await self.user_service.find_user(find_dto)
+
+        if not PasswordService.verify_password(dto.password, user.hashed_password):
             raise UserNotFound("Incorrect username or password")
 
-        if not PasswordService.verify_password(form_data.password, user_model.hashed_password):
-            raise UserNotFound("Incorrect username or password")
-
-        access_token = TokenService.create_access_token(data={"sub": str(user_model.id)})
-        refresh_token = TokenService.create_refresh_token(data={"sub": str(user_model.id)})
+        access_token = TokenService.create_access_token(data={"sub": str(user.id)})
+        refresh_token = TokenService.create_refresh_token(data={"sub": str(user.id)})
 
         return TokenDTO(access_token=access_token, refresh_token=refresh_token)
