@@ -17,3 +17,10 @@ class UserNotFound(NotFound):
     Raised when a user is not found in the database.
     """
     pass
+
+
+class UserAccessForbidden(Exception):
+    """
+    Raised when a user attempts to access or modify another user's resources.
+    """
+    pass
