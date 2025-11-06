@@ -10,6 +10,7 @@ from backend.user.dto import (
 )
 from backend.user.entities import User
 from backend.libs.exceptions import PaginationError
+from user.dto import UserFindDTO
 
 
 class UserService:
@@ -33,27 +34,28 @@ class UserService:
             username=dto.username,
             hashed_password = hashed_password,
         )
-        user = await self.repo.create(user_entity)
-
-        return user
+        return await self.repo.create(user_entity)
 
     async def get_user_by_id(self, user_id: int) -> UserDTO:
         """
-        Retrieves a user's public profile.
+        Retrieves a user by id.
         """
-        user = await self.repo.get(user_id)
-        return user
+        return await self.repo.get(user_id)
 
     async def get_all_users(self, limit: int, offset: int) -> List[UserDTO]:
         """
-        Retrieves a list of all users' public profiles.
+        Retrieves a list of all users.
         """
 
         if limit < 0 or offset < 0:
             raise PaginationError
+        return await self.repo.get_list(limit, offset)
 
-        users = await self.repo.get_list(limit, offset)
-        return users
+    async def find_user(self, dto: UserFindDTO) -> UserDTO:
+        """
+        Retrieves user by several parameters.
+        """
+        return await self.repo.find(dto)
 
     async def update_user(
         self, pk: int, dto: UserUpdate
@@ -61,8 +63,7 @@ class UserService:
         """
         Updates a user's profile after verifying permissions.
         """
-        updated_user = await self.repo.update(pk, dto)
-        return updated_user
+        return await self.repo.update(pk, dto)
 
     async def delete_user(self, pk: int) -> None:
         """

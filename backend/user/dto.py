@@ -40,24 +40,6 @@ class UserUpdate(BaseModel):
         description="A new password. If provided, it must be at least 8 characters."
     )
 
-class UserPrivateDTO(BaseModel):
-    """
-    DTO for a user's private profile, including personal details like email.
-    """
-
-    id: int = Field(..., description="The unique identifier for the user.")
-    username: str = Field(
-        ...,
-        min_length=3,
-        max_length=50,
-        description="The unique username for the user."
-    )
-    email: EmailStr = Field(..., description="The unique email address for the user.")
-
-    class Config:
-        """Pydantic configuration to allow ORM model mapping."""
-        from_attributes = True
-
 class UserCreate(BaseModel):
     """
     DTO for creating a new user. Used to validate registration requests.
@@ -66,16 +48,6 @@ class UserCreate(BaseModel):
     email: EmailStr
     password: str = Field(..., min_length=8)
 
-class UserPublicDTO(BaseModel):
-    """
-    DTO for a user's public profile. Excludes sensitive information.
-    """
-    id: int
-    username: str
-
-    class Config:
-        """Pydantic configuration to allow ORM model mapping."""
-        from_attributes = True
 
 class UserFindDTO(BaseModel):
     """

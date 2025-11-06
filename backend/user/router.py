@@ -7,7 +7,7 @@ from fastapi import APIRouter, status
 
 from backend.user.dependencies.service import IUserService
 from backend.user.dto import (
-    UserCreate, UserPrivateDTO, UserPublicDTO, UserUpdate
+    UserCreate, UserUpdate, UserDTO
 )
 
 router = APIRouter(prefix="/users", tags=["Users"])
@@ -15,7 +15,7 @@ router = APIRouter(prefix="/users", tags=["Users"])
 
 @router.post(
     "/",
-    response_model=UserPrivateDTO,
+    response_model=UserDTO,
     status_code=status.HTTP_201_CREATED,
     summary="Register a new user"
 )
@@ -34,7 +34,7 @@ async def create_user(
 
 @router.get(
     "/",
-    response_model=List[UserPublicDTO],
+    response_model=List[UserDTO],
     summary="Get a list of all users"
 )
 async def get_all_users(
@@ -53,7 +53,7 @@ async def get_all_users(
 
 @router.get(
     "/{user_id}",
-    response_model=UserPublicDTO,
+    response_model=UserDTO,
     summary="Get a user's public profile by ID"
 )
 async def get_user_by_id(
@@ -71,7 +71,7 @@ async def get_user_by_id(
 
 @router.put(
     "/{user_id}",
-    response_model=UserPrivateDTO,
+    response_model=UserDTO,
     summary="Update a user's profile"
 )
 async def update_user(
