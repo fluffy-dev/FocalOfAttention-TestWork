@@ -1,7 +1,8 @@
 from fastapi import FastAPI
 
-from src.lifespan import lifespan
-from src.handlers import exception_handlers
+from backend.router import router
+from backend.lifespan import lifespan
+from backend.handlers import exception_handlers
 
 def get_app() -> FastAPI:
 
@@ -12,6 +13,7 @@ def get_app() -> FastAPI:
         lifespan=lifespan,
         exception_handlers=exception_handlers,
     )
+    app.include_router(router)
 
     #TODO add logging setup and cors init
     return app

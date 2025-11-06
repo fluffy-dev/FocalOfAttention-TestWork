@@ -1,5 +1,5 @@
 import uvicorn
-from src.app import get_app
+from backend.app import get_app
 
 app = get_app()
 

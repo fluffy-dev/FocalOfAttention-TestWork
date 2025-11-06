@@ -9,7 +9,7 @@ from backend.user.dto import (
     UserUpdate, UserCreate, UserDTO
 )
 from backend.user.entities import User
-from libs.exceptions import PaginationError
+from backend.libs.exceptions import PaginationError
 
 
 class UserService:
