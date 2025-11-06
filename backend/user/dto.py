@@ -22,7 +22,7 @@ class UserDTO(BaseModel):
         max_length=50,
         description="The unique username for the user."
     )
-    email: EmailStr = Field(..., description="The unique email address for the user.")
+    email: EmailStr | str = Field(..., description="The unique email address for the user.")
 
     class Config:
         """Pydantic configuration to allow ORM model mapping."""
@@ -58,6 +58,13 @@ class UserPrivateDTO(BaseModel):
         """Pydantic configuration to allow ORM model mapping."""
         from_attributes = True
 
+class UserCreate(BaseModel):
+    """
+    DTO for creating a new user. Used to validate registration requests.
+    """
+    username: str = Field(..., min_length=3, max_length=50)
+    email: EmailStr
+    password: str = Field(..., min_length=8)
 
 class UserPublicDTO(BaseModel):
     """

@@ -1,104 +1,90 @@
-"""
-Repository for user data access, interacting with the database.
+from typing import Optional, List
 
-This layer is responsible for all CRUD (Create, Read, Update, Delete)
-operations for the UserModel. It primarily returns DTOs to the service
-layer but includes a secure mechanism to return ORM models when internal
-access to fields like `hashed_password` is required by the calling service.
-"""
-from typing import overload, Union
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.config.database import ISession
-from backend.user.dto import UserDTO, UserFindDTO
-from backend.user.entities import User
 from backend.user.exceptions import UserAlreadyExists, UserNotFound
+from backend.user.dto import UserUpdate, UserDTO, UserFindDTO
+from backend.user.entities import User
 from backend.user.models.user import UserModel
 
 
 class UserRepository:
     """
-    Repository for user data access.
-
-    Args:
-        session (ISession): The database session dependency.
+    Repository for user data access, operating with DTOs.
     """
-    def __init__(self, session: ISession):
-        self.session: AsyncSession = session
+    def __init__(self, session: ISession) -> None:
+        self.session: ISession = session
 
-    @staticmethod
-    def _to_dto(instance: UserModel) -> UserDTO:
-        """Converts a UserModel SQLAlchemy instance to a UserDTO."""
-        return UserDTO.model_validate(instance)
-
-    async def create(self, user_entity: User) -> UserDTO:
-        """
-        Creates a new user record in the database from a domain entity.
-
-        Args:
-            user_entity (User): The domain entity containing the new user's data.
-
-        Returns:
-            UserDTO: The DTO of the newly created user.
-
-        Raises:
-            UserAlreadyExists: If a user with the same username or email
-                already exists.
-        """
-        instance = UserModel(**user_entity.to_dict())
+    async def create(self, user: User) -> UserDTO:
+        instance = UserModel(
+            username=user.username,
+            email=str(user.email),
+            hashed_password=user.hashed_password
+        )
         self.session.add(instance)
         try:
             await self.session.commit()
             await self.session.refresh(instance)
-            return self._to_dto(instance)
-        except IntegrityError as e:
+            return self._get_dto(instance)
+        except IntegrityError:
             await self.session.rollback()
-            raise UserAlreadyExists from e
+            raise UserAlreadyExists
 
-    @overload
-    async def find(self, find_dto: UserFindDTO) -> UserDTO: ...
-
-    @overload
-    async def find(self, find_dto: UserFindDTO, *, return_model: bool = False) -> UserDTO: ...
-
-    @overload
-    async def find(self, find_dto: UserFindDTO, *, return_model: bool = True) -> UserModel: ...
-
-    async def find(
-        self, find_dto: UserFindDTO, *, return_model: bool = False
-    ) -> Union[UserDTO, UserModel]:
-        """
-        Finds a single user based on flexible criteria.
-
-        By default, this method returns a safe DTO. The `return_model` flag
-        can be set to True to return the raw SQLAlchemy model, which should
-        only be done for internal services like authentication that need to
-        access sensitive fields not present in the DTO.
-
-        Args:
-            find_dto (UserFindDTO): DTO with optional fields (id, username,
-                email) to search by.
-            return_model (bool): If True, returns the SQLAlchemy UserModel
-                instance instead of the UserDTO. Defaults to False.
-
-        Returns:
-            Union[UserDTO, UserModel]: The found user as a DTO or ORM model.
-
-        Raises:
-            UserNotFound: If no user matches the provided criteria.
-            ValueError: If no search criteria are provided.
-        """
-        criteria = find_dto.model_dump(exclude_none=True)
-        if not criteria:
-            raise ValueError("At least one search criterion must be provided.")
-
-        stmt = select(UserModel).filter_by(**criteria)
-        result = await self.session.execute(stmt)
-        instance = result.scalar_one_or_none()
+    async def get(self, pk: int) -> Optional[UserDTO]:
+        instance = await self.session.get(UserModel, pk)
 
         if instance is None:
             raise UserNotFound
 
-        return instance if return_model else self._to_dto(instance)
+        return self._get_dto(instance)
+
+    async def find(self, dto: UserFindDTO) -> Optional[UserDTO]:
+        stmt = select(UserModel).filter_by(**dto.model_dump(exclude_none=True))
+        result = await self.session.execute(stmt)
+        instance = result.scalar_one_or_none()
+        if instance is None:
+            raise UserNotFound
+        return self._get_dto(instance)
+
+    async def get_list(self, limit: int = 100, offset: int = 0) -> List[UserDTO]:
+        stmt = select(UserModel).offset(offset).limit(limit)
+        result = await self.session.execute(stmt)
+        instances = result.scalars().all()
+        return [self._get_dto(instance) for instance in instances]
+
+    async def update(self, pk: int, dto: UserUpdate) -> UserDTO:
+        stmt = (
+            update(UserModel)
+            .values(**dto.model_dump(exclude_none=True))
+            .where(UserModel.id == pk)
+            .returning(UserModel)
+        )
+        result = await self.session.execute(stmt)
+        await self.session.commit()
+        instance = result.scalar_one_or_none()
+        if instance is None:
+            raise UserNotFound
+        return self._get_dto(instance)
+
+    async def delete(self, pk: int) -> None:
+        """
+        Deletes a user from the database.
+
+        Args:
+            pk (int): The ID of the user to delete.
+        """
+        instance = await self.session.get(UserModel, pk)
+        if instance is None:
+            raise UserNotFound
+        await self.session.delete(instance)
+        await self.session.commit()
+
+    @staticmethod
+    def _get_dto(instance: UserModel) -> UserDTO:
+        return UserDTO(
+            id=instance.id,
+            username=instance.username,
+            email=instance.email
+        )
