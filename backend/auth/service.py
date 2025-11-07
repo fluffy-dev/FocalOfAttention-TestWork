@@ -7,6 +7,7 @@ from backend.user.exceptions import UserNotFound
 from backend.security.service import PasswordService, TokenService
 from backend.security.dto import TokenDTO
 from backend.auth.dto import RegistrationDTO, LoginDTO
+from security.dto import TokenPayloadDTO
 
 
 class AuthService:
@@ -69,3 +70,34 @@ class AuthService:
         refresh_token = TokenService.create_refresh_token(data={"sub": str(user.id)})
 
         return TokenDTO(access_token=access_token, refresh_token=refresh_token)
+
+    async def refresh_tokens(self, refresh_token: str) -> TokenDTO:
+        """
+        Issues new tokens if a valid refresh token is provided.
+
+        Args:
+            refresh_token (str): The refresh token sent by the client.
+
+        Returns:
+            TokenDTO: A new set of access and refresh tokens.
+
+        Raises:
+            UserNotFound: If the user ID from the token is invalid or the
+                user no longer exists.
+        """
+        payload: TokenPayloadDTO | None = TokenService.verify_token(refresh_token)
+        if payload is None or payload.sub is None:
+            raise UserNotFound("Invalid refresh token.")
+
+        try:
+            user_id = int(payload.sub)
+            # Verify the user still exists in the database.
+            await self.user_service.get_user_by_id(user_id)
+        except (ValueError, UserNotFound) as e:
+            raise UserNotFound("User from token not found.") from e
+
+        # Issue a new set of tokens (token rotation)
+        new_access_token = TokenService.create_access_token(data={"sub": str(user_id)})
+        new_refresh_token = TokenService.create_refresh_token(data={"sub": str(user_id)})
+
+        return TokenDTO(access_token=new_access_token, refresh_token=new_refresh_token)
