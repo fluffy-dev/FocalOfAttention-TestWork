@@ -26,8 +26,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    ports:
-      - "${APP_PORT:-8000}:8000"
     command: >
       sh -c "alembic upgrade head &&
              uvicorn main:app --host ${APP_HOST} --port ${APP_PORT} --reload"
