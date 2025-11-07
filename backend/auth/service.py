@@ -7,7 +7,7 @@ from backend.user.exceptions import UserNotFound
 from backend.security.service import PasswordService, TokenService
 from backend.security.dto import TokenDTO
 from backend.auth.dto import RegistrationDTO, LoginDTO
-from security.dto import TokenPayloadDTO
+from backend.security.dto import TokenPayloadDTO
 
 
 class AuthService:
