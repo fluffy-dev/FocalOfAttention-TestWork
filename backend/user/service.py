@@ -10,7 +10,7 @@ from backend.user.dto import (
 )
 from backend.user.entities import User
 from backend.libs.exceptions import PaginationError
-from user.dto import UserFindDTO
+from backend.user.dto import UserFindDTO
 
 
 class UserService:

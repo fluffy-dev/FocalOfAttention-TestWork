@@ -24,6 +24,8 @@ class UserDTO(BaseModel):
     )
     email: EmailStr | str = Field(..., description="The unique email address for the user.")
 
+    hashed_password: str = Field(..., description="The hashed password for the user.")
+
     class Config:
         """Pydantic configuration to allow ORM model mapping."""
         from_attributes = True

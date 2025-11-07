@@ -1,11 +1,14 @@
 """
 Defines the SQLAlchemy ORM model for users.
 """
-from typing import List
+from typing import List, TYPE_CHECKING
 from sqlalchemy import String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.libs.base_model import Base
+
+if TYPE_CHECKING:
+    from task.models.task import TaskModel
 
 
 class UserModel(Base):
@@ -25,4 +28,4 @@ class UserModel(Base):
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True)
     hashed_password: Mapped[str] = mapped_column(String(255))
 
-    # tasks: Mapped[List["TaskModel"]] = relationship(back_populates="owner")
+    tasks: Mapped[List["TaskModel"]] = relationship(back_populates="owner")

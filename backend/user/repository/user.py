@@ -86,5 +86,6 @@ class UserRepository:
         return UserDTO(
             id=instance.id,
             username=instance.username,
-            email=instance.email
+            email=instance.email,
+            hashed_password=instance.hashed_password,
         )

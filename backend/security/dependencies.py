@@ -3,18 +3,14 @@ Defines FastAPI dependencies for security and user authentication.
 """
 from typing import Annotated
 from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
 
 from backend.security.service import TokenService
 from backend.user.dependencies.repository import IUserRepository
 from backend.user.dto import UserDTO, UserFindDTO
 from backend.user.exceptions import UserNotFound
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/token")
-IToken = Annotated[str, Depends(oauth2_scheme)]
 
-
-async def get_current_user(token: IToken, user_repo: IUserRepository) -> UserDTO:
+async def get_current_user(access_token: str, user_repo: IUserRepository) -> UserDTO:
     """
     Dependency to get the current authenticated user from a JWT token.
 
@@ -30,13 +26,15 @@ async def get_current_user(token: IToken, user_repo: IUserRepository) -> UserDTO
 
     Raises:
         HTTPException(401): If the token is invalid or the user is not found.
+        :param access_token:
     """
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
-    payload = TokenService.verify_token(token)
+    payload = TokenService.verify_token(access_token)
+
     if payload is None or payload.sub is None:
         raise credentials_exception
 
@@ -47,4 +45,4 @@ async def get_current_user(token: IToken, user_repo: IUserRepository) -> UserDTO
     except (UserNotFound, ValueError):
         raise credentials_exception
 
-ICurrentUser = Annotated[UserDTO, Depends(get_current_user)]
+ICurrentUser: type[UserDTO] = Annotated[UserDTO, Depends(get_current_user)]
