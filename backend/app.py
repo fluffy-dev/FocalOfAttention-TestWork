@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from backend.router import router
 from backend.lifespan import lifespan
@@ -14,6 +15,14 @@ def get_app() -> FastAPI:
         exception_handlers=exception_handlers,
     )
     app.include_router(router)
+
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
     #TODO add logging setup and cors init
     return app
