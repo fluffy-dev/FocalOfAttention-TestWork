@@ -1,5 +1,4 @@
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 
 from backend.router import router
 from backend.lifespan import lifespan
