@@ -5,7 +5,7 @@ from pydantic import BaseModel, Field
 from datetime import datetime
 from typing import Optional
 
-from backend.task.models.task import TaskStatus
+from backend.task.enums import TaskStatus
 
 
 class TaskCreate(BaseModel):

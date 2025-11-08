@@ -7,16 +7,10 @@ from sqlalchemy import String, ForeignKey, Enum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.libs.base_model import Base
+from backend.task.enums import TaskStatus
 
 if TYPE_CHECKING:
     from backend.user.models.user import UserModel
-
-
-class TaskStatus(enum.Enum):
-    """Enumeration for the possible statuses of a task."""
-    PENDING = "pending"
-    IN_PROGRESS = "in_progress"
-    DONE = "done"
 
 
 class TaskModel(Base):
