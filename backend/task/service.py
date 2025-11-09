@@ -32,6 +32,29 @@ class TaskService:
         self.repo = repo
 
     async def _get_and_verify(self, task_id: int, user_id: int) -> Optional[TaskDTO]:
+        """Retrieves a task and verifies user ownership.
+
+        This private helper method serves as a central point for access control.
+        It fetches a task by its ID and then checks if the `owner_id` of the
+        task matches the provided `user_id`. This ensures that users can only
+        operate on their own tasks.
+
+        Args:
+            task_id (int): The ID of the task to retrieve.
+            user_id (int): The ID of the user requesting access.
+
+        Returns:
+            TaskDTO: The data transfer object of the task if the user is
+                verified as the owner. The type hint is Optional[TaskDTO] for
+                flexibility, though the current implementation does not return
+                None.
+
+        Raises:
+            TaskNotFound: If the task with the given ID does not exist
+                (raised from the repository).
+            TaskAccessForbidden: If the `user_id` does not match the task's
+                `owner_id`.
+        """
         task = await self.repo.get_by_id(task_id)
 
         if task.owner_id != user_id:
@@ -120,7 +143,8 @@ class TaskService:
             TaskDTO: The data transfer object of the updated task.
 
         Raises:
-            TaskNotFound: If the task to update is not found for the user.
+            TaskNotFound: If the task to update is not found.
+            TaskAccessForbidden: If the user is not the task's owner.
         """
         await self._get_and_verify(task_id, user_id)
         return await self.repo.update(task_id, task_update)
@@ -128,12 +152,16 @@ class TaskService:
     async def delete_task(self, task_id: int, user_id: int) -> None:
         """Deletes a task after verifying ownership.
 
-        The ownership check is handled by the repository, which will only
-        delete the task if the `task_id` and `user_id` match a record.
+        This method confirms the user is the owner before instructing the
+        repository to delete the task.
 
         Args:
             task_id (int): The ID of the task to delete.
             user_id (int): The ID of the user requesting the deletion.
+
+        Raises:
+            TaskNotFound: If the task to delete is not found.
+            TaskAccessForbidden: If the user is not the task's owner.
         """
         await self._get_and_verify(task_id, user_id)
         await self.repo.delete(task_id)
