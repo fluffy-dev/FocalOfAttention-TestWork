@@ -16,9 +16,11 @@ from backend.task.models.task import TaskModel, TaskStatus
 class TaskRepository:
     """Repository for task data access, operating with SQLAlchemy models.
 
-    This class provides an interface for interacting with the task data storage.
-    It encapsulates the logic for creating, retrieving, updating, and deleting
-    tasks, using an asynchronous SQLAlchemy session.
+    This class provides a low-level interface for interacting with the task
+    data storage. It encapsulates the direct database operations for creating,
+    retrieving, updating, and deleting tasks using an asynchronous SQLAlchemy
+    session. This layer is not responsible for business logic like ownership
+    verification.
 
     Attributes:
         session (AsyncSession): The database session for executing queries.
@@ -30,7 +32,7 @@ class TaskRepository:
         Args:
             session (ISession): The database session dependency, which should be
                 an instance of an asynchronous session manager that provides an
-                AsyncSession.
+                AsyncSession for database interactions.
         """
         self.session: AsyncSession = session
 
@@ -97,22 +99,22 @@ class TaskRepository:
                 representing a task belonging to the specified user.
         """
         stmt = select(TaskModel).where(TaskModel.owner_id == owner_id)
+
         if status:
             stmt = stmt.where(TaskModel.status == status)
+
         result = await self.session.execute(stmt)
         instances = result.scalars().all()
         return [self._get_dto(instance) for instance in instances]
 
-    async def update(self, task_id: int, user_id: int, dto: TaskUpdate) -> TaskDTO:
+    async def update(self, task_id: int, dto: TaskUpdate) -> TaskDTO:
         """Updates an existing task with new data.
 
-        This method applies the updates from a TaskUpdate DTO to a specific
-        task, identified by its ID and the owner's ID.
+        This method applies updates from a TaskUpdate DTO to a task specified
+        by its primary key.
 
         Args:
             task_id (int): The ID of the task to update.
-            user_id (int): The ID of the user who owns the task. This is used
-                to ensure that users can only update their own tasks.
             dto (TaskUpdate): A Pydantic data transfer object containing the
                 fields to be updated.
 
@@ -121,10 +123,9 @@ class TaskRepository:
                 task.
 
         Raises:
-            TaskNotFound: If no task with the specified ID and owner ID is
-                found.
+            TaskNotFound: If no task with the specified ID is found.
         """
-        stmt = update(TaskModel).values(**dto.model_dump()).filter_by(id=task_id, owner_id=user_id).returning(TaskModel)
+        stmt = update(TaskModel).values(**dto.model_dump()).filter_by(id=task_id).returning(TaskModel)
         raw = await self.session.execute(stmt)
         instance = raw.scalar_one_or_none()
         await self.session.commit()
@@ -134,15 +135,15 @@ class TaskRepository:
 
         return self._get_dto(instance)
 
-    async def delete(self, task_id: int, user_id: int) -> None:
+    async def delete(self, task_id: int) -> None:
         """Deletes a task from the database.
+
+        This method deletes a task based on its primary key.
 
         Args:
             task_id (int): The ID of the task to be deleted.
-            user_id (int): The ID of the user who owns the task. This is used
-                to ensure that users can only delete their own tasks.
         """
-        stmt = delete(TaskModel).where(TaskModel.id == task_id, TaskModel.owner_id == user_id)
+        stmt = delete(TaskModel).where(TaskModel.id == task_id)
         await self.session.execute(stmt)
         await self.session.commit()
 
