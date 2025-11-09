@@ -1,5 +1,9 @@
-"""
-Defines the RESTful API endpoints for full CRUD user management.
+"""Defines the RESTful API endpoints for full CRUD user management.
+
+This module sets up the API routes for user-related operations. It delegates
+all business logic to the `UserService` via dependency injection, keeping the
+endpoint definitions clean and focused on the API contract (paths, methods,
+request/response models).
 """
 from typing import List
 
@@ -23,11 +27,17 @@ async def create_user(
         user_data: UserCreate,
         service: IUserService,
 ):
-    """
-    Creates a new user account.
+    """Creates a new user account.
 
     This is a public endpoint for user registration. It will return a 409
     Conflict error if the username or email is already taken.
+
+    Args:
+        user_data (UserCreate): The user registration data from the request body.
+        service (IUserService): The injected user service dependency.
+
+    Returns:
+        UserDTO: The newly created user's data.
     """
     return await service.create_user(user_data)
 
@@ -42,11 +52,18 @@ async def get_all_users(
         limit: int = 100,
         offset: int = 0
 ):
-    """
-    Retrieves a paginated list of all users' public profiles.
+    """Retrieves a paginated list of all users.
 
-    This is a protected endpoint. In a real-world scenario, you would add
-    an additional dependency here to check for admin privileges.
+    This endpoint might be protected in a real-world scenario to be
+    accessible only by admin users.
+
+    Args:
+        service (IUserService): The injected user service dependency.
+        limit (int): The maximum number of users to return.
+        offset (int): The number of users to skip for pagination.
+
+    Returns:
+        List[UserDTO]: A list of user data objects.
     """
     return await service.get_all_users(limit, offset)
 
@@ -54,17 +71,22 @@ async def get_all_users(
 @router.get(
     "/{user_id}",
     response_model=UserDTO,
-    summary="Get a user's public profile by ID"
+    summary="Get a user's profile by ID"
 )
 async def get_user_by_id(
         user_id: int,
         service: IUserService,
 ):
-    """
-    Retrieves a specific user's public profile by their ID.
+    """Retrieves a specific user's profile by their ID.
 
-    This is a protected endpoint that will return a 404 Not Found if the
-    user does not exist.
+    This endpoint will return a 404 Not Found if the user does not exist.
+
+    Args:
+        user_id (int): The ID of the user to retrieve.
+        service (IUserService): The injected user service dependency.
+
+    Returns:
+        UserDTO: The requested user's data.
     """
     return await service.get_user_by_id(user_id)
 
@@ -79,11 +101,18 @@ async def update_user(
         update_data: UserUpdate,
         service: IUserService,
 ):
-    """
-    Updates a user's profile.
+    """Updates a user's profile.
 
-    A user can only update their own profile. Attempting to update another
-    user's profile will result in a 403 Forbidden error.
+    In a real application, this would be protected to ensure a user can only
+    update their own profile, returning a 403 Forbidden error otherwise.
+
+    Args:
+        user_id (int): The ID of the user to update.
+        update_data (UserUpdate): The new user data from the request body.
+        service (IUserService): The injected user service dependency.
+
+    Returns:
+        UserDTO: The updated user's data.
     """
     return await service.update_user(user_id, update_data)
 
@@ -97,10 +126,14 @@ async def delete_user(
         user_id: int,
         service: IUserService,
 ):
-    """
-    Deletes a user's profile.
+    """Deletes a user's profile.
 
-    A user can only delete their own profile. Attempting to delete another
-    user's profile will result in a 403 Forbidden error.
+    In a real application, this would be protected to ensure a user can only
+    delete their own profile, returning a 403 Forbidden error otherwise. A
+    successful deletion returns a 204 No Content response.
+
+    Args:
+        user_id (int): The ID of the user to delete.
+        service (IUserService): The injected user service dependency.
     """
     await service.delete_user(user_id)

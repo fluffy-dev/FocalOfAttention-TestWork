@@ -27,15 +27,15 @@ The entire application is containerized with **Docker** and orchestrated with **
 
 ## Tech Stack
 
-| Category             | Technology                                                                                                  |
-| -------------------- | ----------------------------------------------------------------------------------------------------------- |
-| **Backend**          | Python 3.12, FastAPI, Uvicorn, SQLAlchemy 2.0 (Async), Pydantic, Passlib, python-jose                         |
-| **Frontend**         | React 18, React Router, Axios, TailwindCSS, jwt-decode                                                      |
-| **Database**         | PostgreSQL                                                                                                  |
-| **Migrations**       | Alembic                                                                                                     |
-| **Testing**          | Pytest, Pytest-Asyncio, HTTPX                                                                               |
-| **Deployment**       | Docker, Docker Compose, Nginx (as a reverse proxy)                                                          |
-| **Tooling**          | `nvm`, `venv`, `pip`, `npm`, `pyproject.toml`                                                                 |
+| Category       | Technology                                                                            |
+|----------------|---------------------------------------------------------------------------------------|
+| **Backend**    | Python 3.12, FastAPI, Uvicorn, SQLAlchemy 2.0 (Async), Pydantic, Passlib, python-jose |
+| **Frontend**   | React 18, React Router, Axios, TailwindCSS, jwt-decode                                |
+| **Database**   | PostgreSQL                                                                            |
+| **Migrations** | Alembic                                                                               |
+| **Testing**    | Pytest, Pytest-Asyncio, HTTPX                                                         |
+| **Deployment** | Docker, Docker Compose, Nginx (as a reverse proxy)                                    |
+| **Tooling**    | `nvm`, `venv`, `pip`, `npm`, `pyproject.toml`                                         |
 
 ## Architectural Overview
 

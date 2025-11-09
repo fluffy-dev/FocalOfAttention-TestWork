@@ -1,5 +1,9 @@
-"""
-Defines the SQLAlchemy ORM model for users.
+"""Defines the SQLAlchemy ORM model for users.
+
+This module contains the `UserModel`, which maps the `users` table in the
+database to a Python class. It defines the table structure, columns, and
+relationships to other models, serving as the primary interface for database
+interactions concerning user data via the ORM.
 """
 from typing import List, TYPE_CHECKING
 from sqlalchemy import String
@@ -12,15 +16,20 @@ if TYPE_CHECKING:
 
 
 class UserModel(Base):
-    """
-    SQLAlchemy model for a user.
+    """SQLAlchemy ORM model for a user.
+
+    This class represents the `users` table in the database. Each instance
+    of this class corresponds to a single row in the table.
 
     Attributes:
-        username (Mapped[str]): The user's unique login name.
-        email (Mapped[str]): The user's unique email address.
+        username (Mapped[str]): The user's unique login name, indexed for
+            fast lookups.
+        email (Mapped[str]): The user's unique email address, also indexed.
         hashed_password (Mapped[str]): The user's securely hashed password.
-        tasks (Mapped[List["TaskModel"]]): A relationship to the tasks
-            owned by this user.
+        tasks (Mapped[List["TaskModel"]]): A one-to-many relationship to the
+            tasks owned by this user. The `back_populates` argument ensures
+            that the relationship is bidirectionally linked with the `owner`
+            attribute on the `TaskModel`.
     """
     __tablename__ = "users"
 
