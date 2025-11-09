@@ -34,7 +34,6 @@ class TaskDTO(BaseModel):
     description: Optional[str] = Field(None, description="The optional description of the task.")
     status: TaskStatus
     owner_id: int
-    created_at: datetime
 
     class Config:
         """Pydantic configuration to allow ORM model mapping."""
