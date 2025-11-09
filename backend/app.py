@@ -13,6 +13,7 @@ def get_app() -> FastAPI:
         version="1.0.0",
         lifespan=lifespan,
         exception_handlers=exception_handlers,
+        redirect_slashes=False
     )
     app.include_router(router)
 

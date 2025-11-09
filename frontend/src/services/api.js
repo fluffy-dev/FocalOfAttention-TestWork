@@ -92,11 +92,11 @@ export const apiService = {
     }),
   },
   tasks: {
-    getAll: (status = null) => {
-      const params = status ? { status } : {};
-      return apiClient.get('/tasks', { params });
+    getAll: (task_status = null) => {
+      const params = task_status ? { task_status } : {};
+      return apiClient.get('/tasks/', { params });
     },
-    create: (taskData) => apiClient.post('/tasks', taskData),
+    create: (taskData) => apiClient.post('/tasks/', taskData),
     update: (taskId, updateData) => apiClient.put(`/tasks/${taskId}`, updateData),
     delete: (taskId) => apiClient.delete(`/tasks/${taskId}`),
   },

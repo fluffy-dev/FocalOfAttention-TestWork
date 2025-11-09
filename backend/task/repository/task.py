@@ -125,7 +125,7 @@ class TaskRepository:
         Raises:
             TaskNotFound: If no task with the specified ID is found.
         """
-        stmt = update(TaskModel).values(**dto.model_dump()).filter_by(id=task_id).returning(TaskModel)
+        stmt = update(TaskModel).values(**dto.model_dump(exclude_none=True)).filter_by(id=task_id).returning(TaskModel)
         raw = await self.session.execute(stmt)
         instance = raw.scalar_one_or_none()
         await self.session.commit()

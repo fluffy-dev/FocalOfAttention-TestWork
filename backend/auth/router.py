@@ -2,12 +2,11 @@
 Defines the RESTful API endpoints for user authentication and registration.
 """
 from typing import Annotated
-from fastapi import APIRouter, Depends, Form, HTTPException, status
+from fastapi import APIRouter, Form
 
 from backend.auth.dto import RegistrationDTO, LoginDTO
 from backend.security.dto import TokenDTO
 from backend.auth.dependencies.service import IAuthService
-from backend.user.exceptions import UserNotFound
 
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
@@ -42,13 +41,7 @@ async def login(
     Authenticates a user with their username and password and returns a set
     of access and refresh tokens.
     """
-    try:
-        return await service.login(login_data)
-    except UserNotFound:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
-        )
+    return await service.login(login_data)
 
 
 @router.post(
@@ -63,10 +56,4 @@ async def refresh(
     """
     Issues a new pair of tokens if a valid refresh token is provided.
     """
-    try:
-        return await service.refresh_tokens(refresh_token)
-    except UserNotFound:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid refresh token or user not found",
-        )
+    return await service.refresh_tokens(refresh_token)

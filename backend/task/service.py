@@ -3,11 +3,11 @@ Service layer for task-related business logic.
 """
 from typing import List, Optional
 
+from backend.task.enums import TaskStatus
+from backend.task.entity import TaskEntity
+from backend.task.exceptions import TaskAccessForbidden
 from backend.task.dto import TaskCreate, TaskDTO, TaskUpdate
-from backend.task.exceptions import TaskAccessForbidden, TaskNotFound
-from backend.task.models.task import TaskModel, TaskStatus
 from backend.task.dependencies.repository import ITaskRepository
-from task.entity import TaskEntity
 
 
 class TaskService:

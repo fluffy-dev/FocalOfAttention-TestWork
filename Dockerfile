@@ -13,4 +13,4 @@ COPY ./migrations /app/migrations
 COPY alembic.ini .
 COPY main.py .
 
-CMD ["sh", "-c", "alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port 8000"]
+CMD ["sh", "-c", "alembic upgrade head && uvicorn main:app --host ${APP_HOST} --port ${APP_PORT}"]
