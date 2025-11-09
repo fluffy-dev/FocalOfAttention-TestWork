@@ -15,7 +15,7 @@ from backend.user.dto import UserDTO, UserFindDTO
 from backend.user.exceptions import UserNotFound
 
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/v1/auth/login")
 
 IToken = Annotated[str, Depends(oauth2_scheme)]
 
