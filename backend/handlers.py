@@ -10,20 +10,25 @@ try/except blocks.
 from fastapi import Request, status
 from fastapi.responses import JSONResponse
 
-from backend.libs.exceptions import NotFound, AlreadyExists, PaginationError
-from backend.user.exceptions import UserAccessForbidden
+from backend.libs.exceptions import NotFound, AlreadyExists, PaginationError, AccessForbidden
+
 
 
 async def not_found_exception_handler(request: Request, exc: NotFound):
-    """
-    Handles all exceptions inheriting from `libs.exceptions.NotFound`.
+    """Handles all exceptions inheriting from `libs.exceptions.NotFound`.
+
+    This generic handler catches any exception that signifies a resource
+    could not be found, such as `UserNotFound` or `TaskNotFound`, and
+    returns a standard 404 Not Found response.
 
     Args:
-        request (Request): The incoming request object.
-        exc (NotFound): The caught exception instance.
+        request (Request): The incoming FastAPI request object.
+        exc (NotFound): The caught exception instance that inherits from the
+            base `NotFound` class.
 
     Returns:
-        JSONResponse: A 404 Not Found response.
+        JSONResponse: A JSON response with a 404 Not Found status code and a
+            generic detail message.
     """
     return JSONResponse(
         status_code=status.HTTP_404_NOT_FOUND,
@@ -32,15 +37,20 @@ async def not_found_exception_handler(request: Request, exc: NotFound):
 
 
 async def already_exists_exception_handler(request: Request, exc: AlreadyExists):
-    """
-    Handles all exceptions inheriting from `libs.exceptions.AlreadyExists`.
+    """Handles all exceptions inheriting from `libs.exceptions.AlreadyExists`.
+
+    This handler is triggered when an attempt to create a resource fails
+    because a resource with the same unique identifier (e.g., email) already
+    exists in the database.
 
     Args:
-        request (Request): The incoming request object.
-        exc (AlreadyExists): The caught exception instance.
+        request (Request): The incoming FastAPI request object.
+        exc (AlreadyExists): The caught exception instance that inherits from
+            the base `AlreadyExists` class.
 
     Returns:
-        JSONResponse: A 409 Conflict response.
+        JSONResponse: A JSON response with a 409 Conflict status code and a
+            generic detail message.
     """
     return JSONResponse(
         status_code=status.HTTP_409_CONFLICT,
@@ -48,16 +58,21 @@ async def already_exists_exception_handler(request: Request, exc: AlreadyExists)
     )
 
 
-async def access_forbidden_exception_handler(request: Request, exc: UserAccessForbidden):
-    """
-    Handles `UserAccessForbidden` exceptions.
+async def access_forbidden_exception_handler(request: Request, exc: AccessForbidden):
+    """Handles all exceptions inheriting from `libs.exceptions.AccessForbidden`.
+
+    This handler catches permission-related errors, such as a user trying to
+    access or modify a resource they do not own, and returns a standard
+    403 Forbidden response.
 
     Args:
-        request (Request): The incoming request object.
-        exc (UserAccessForbidden): The caught exception instance.
+        request (Request): The incoming FastAPI request object.
+        exc (AccessForbidden): The caught exception instance that inherits from
+            the base `AccessForbidden` class.
 
     Returns:
-        JSONResponse: A 403 Forbidden response.
+        JSONResponse: A JSON response with a 403 Forbidden status code and a
+            generic detail message.
     """
     return JSONResponse(
         status_code=status.HTTP_403_FORBIDDEN,
@@ -66,15 +81,18 @@ async def access_forbidden_exception_handler(request: Request, exc: UserAccessFo
 
 
 async def pagination_exception_handler(request: Request, exc: PaginationError):
-    """
-    Handles `PaginationError` exceptions for invalid limit/offset values.
+    """Handles `PaginationError` exceptions for invalid limit/offset values.
+
+    This handler is triggered if pagination parameters (like limit or offset)
+    are provided with invalid values, such as negative numbers.
 
     Args:
-        request (Request): The incoming request object.
+        request (Request): The incoming FastAPI request object.
         exc (PaginationError): The caught exception instance.
 
     Returns:
-        JSONResponse: A 400 Bad Request response.
+        JSONResponse: A JSON response with a 400 Bad Request status code and a
+            specific detail message about the pagination error.
     """
     return JSONResponse(
         status_code=status.HTTP_400_BAD_REQUEST,
@@ -86,6 +104,6 @@ async def pagination_exception_handler(request: Request, exc: PaginationError):
 exception_handlers = {
     NotFound: not_found_exception_handler,
     AlreadyExists: already_exists_exception_handler,
-    UserAccessForbidden: access_forbidden_exception_handler,
+    AccessForbidden: access_forbidden_exception_handler,
     PaginationError: pagination_exception_handler,
 }

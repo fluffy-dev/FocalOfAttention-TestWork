@@ -21,3 +21,8 @@ class PaginationError(Exception):
     Raised for invalid pagination parameters (e.g., negative limit).
     """
     pass
+
+class AccessForbidden(Exception):
+    """
+    Raised when a requested entity is forbidden.
+    """
