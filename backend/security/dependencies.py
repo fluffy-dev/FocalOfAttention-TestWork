@@ -59,4 +59,4 @@ async def get_current_user(token: IToken, user_repo: IUserRepository) -> UserDTO
         raise credentials_exception
 
 
-ICurrentUser = Annotated[UserDTO, Depends(get_current_user)]
+ICurrentUser: type[UserDTO] = Annotated[UserDTO, Depends(get_current_user)]
